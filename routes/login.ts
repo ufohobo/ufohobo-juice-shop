@@ -30,23 +30,9 @@ export function login () {
       })
   }
 
-  return (req: Request, res: Response, next: NextFunction) => {
+return (req: Request, res: Response, next: NextFunction) => {
     verifyPreLoginChallenges(req) // vuln-code-snippet hide-line
-    /*
-      *** SQL INJECTION FIXED W/ SEQUELIZE REPLACEMENT PARAMS ***
-          - https://sequelize.org/docs/v6/core-concepts/raw-queries/#replacements
-    */
-    const user_email = req.body.email || '';
-    const user_passwd = security.hash(req.body.password || '');
-    models.sequelize.query(
-      `SELECT * FROM Users WHERE email = ? AND password = ? AND deletedAt IS NULL`, 
-      { 
-        replacements: [user_email, user_passwd],
-        model: UserModel,
-        type: QueryTypes.SELECT,
-        plain: true 
-      }
-    ) // vuln-code-snippet vuln-line loginAdminChallenge loginBenderChallenge loginJimChallenge
+    models.sequelize.query(`SELECT * FROM Users WHERE email = '${req.body.email || ''}' AND password = '${security.hash(req.body.password || '')}' AND deletedAt IS NULL`, { model: UserModel, plain: true }) // vuln-code-snippet vuln-line loginAdminChallenge loginBenderChallenge loginJimChallenge
       .then((authenticatedUser) => { // vuln-code-snippet neutral-line loginAdminChallenge loginBenderChallenge loginJimChallenge
         const user = utils.queryResultToJson(authenticatedUser)
         if (user.data?.id && user.data.totpSecret !== '') {
